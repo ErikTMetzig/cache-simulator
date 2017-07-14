@@ -191,6 +191,105 @@ void accessData(mem_addr_t addr)  {
       }
 }
 
+/*
+* replayTrace - replays the given trace file against the cache
+*/
+void replayTrace(char* trace_fn)  {
+ 
+  //read trace file, make successive calls
+  char buf[1000];
+  mem_addr_t addr = 0;
+  unsigned int len = 0;
+  FILE* trace_fp = fopen(trace_fn, "r");
+  
+  //error catch
+  if(!trace_fp) {
+    fprintf(stderr, "%s: %s\n", trace_fn, strerror(errno));
+    exit(1);
+  }
+  
+  //handle all calls in the buffer
+  while(fgets(buf, 1000, trace_fp) != NULL) {
+    if(buf[1] == 'S' || buf[1] == 'L' || buf[1] == 'M') {
+      sscanf(buf+3, "%llx,%u", &addr, &len);
+      
+      if(verbosity)
+        printf("%c %llx,%u ", buf[1], addr, len);
+      
+      //if it's a load
+      if(buf[1] == 'L')
+        accessData(addr);
+      
+      //if it's a store
+      else if(buf[1] == 'S')
+        accessData(addr);
+      
+      //otherwise, do data move and access
+      else if(buf[1] == 'M')  {
+        accessData(addr);
+        accessData(addr);
+      }
+        
+      if(verbosity)
+        printf("\n");
+    }
+  }
+  
+  fclose(trace_fp);
+}
 
+/*
+* printUsage - Print usage info
+*/
+void printUsage(char* argv[]) {
+  
+  char c;
+  //Parse the command line arguments: -h, -v, -s, -E, -b, -t
+  while((c=getopt(argc,argv,"s:e:b:t:vh")) != -1) {
+    switch(c) {
+      case 's':
+        s = atoi(optarg);
+        break;
+      case 'E':
+        E = atoi(optarg);
+        break;
+      case 'b':
+        b = atoi(optarg);
+        break;
+      case 't':
+        trace_file = optarg;
+        break;
+      case 'v':
+        verbosity = 1;
+        break;
+      case 'h':
+        printUsage(argv);
+        exit(0);
+      default:
+        printUsage(argv);
+        exit(1);
+    }
+  }
+  
+  //make sure that all the required command line args were specified
+  if(s == 0 || E == 0 || b == 0 || trace_file NULL) {
+    printf("%s: Missing required command line argument\n", argv[0]);
+    printUsage(argv);
+    exit(1);
+  }
+  
+  initCache();
 
-
+  //final print and wipe 
+ #ifdef DEBUG_ON
+   printf("DEBUG: S:%u E:%u B:%u trace:%s\n", S, E, B, trace_file);
+ #endif
+   replayTrace(trace_file);
+  
+  //free allocated memory
+  freeCache();
+  
+  //output hit and miss stats
+  printSummary(hit_count, miss_count, eviction_count);
+  return 0;
+}
