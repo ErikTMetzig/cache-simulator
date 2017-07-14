@@ -202,11 +202,13 @@ void replayTrace(char* trace_fn)  {
   unsigned int len = 0;
   FILE* trace_fp = fopen(trace_fn, "r");
   
+  //error catch
   if(!trace_fp) {
     fprintf(stderr, "%s: %s\n", trace_fn, strerror(errno));
     exit(1);
   }
   
+  //handle all calls in the buffer
   while(fgets(buf, 1000, trace_fp) != NULL) {
     if(buf[1] == 'S' || buf[1] == 'L' || buf[1] == 'M') {
       sscanf(buf+3, "%llx,%u", &addr, &len);
@@ -277,11 +279,12 @@ void printUsage(char* argv[]) {
   }
   
   initCache();
-  
-#ifdef DEBUG_ON
-  printf("DEBUG: S:%u E:%u B:%u trace:%s\n", S, E, B, trace_file);
-#endif
-  replayTrace(trace_file);
+
+  //final print and wipe 
+ #ifdef DEBUG_ON
+   printf("DEBUG: S:%u E:%u B:%u trace:%s\n", S, E, B, trace_file);
+ #endif
+   replayTrace(trace_file);
   
   //free allocated memory
   freeCache();
@@ -290,10 +293,3 @@ void printUsage(char* argv[]) {
   printSummary(hit_count, miss_count, eviction_count);
   return 0;
 }
-
-
-          
-}
-
-
-
