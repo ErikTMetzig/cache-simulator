@@ -6,6 +6,7 @@
  #define CACHELAB_TOOLS_H
  #define MAX_TRANS_FUNCS 100
  
+ //struct that contains all details necessary for recording stats
  typedef struct trans_func {
   void (*func_ptr) (int M, int N, int[N][M], int[M][N]);
   char* description;
@@ -18,7 +19,6 @@
 /*
 * printSummary - Provides a standard way for the cache to display its final hit and miss statistics
 */
-
 void printSummary (int hits, int misses, int evictions);
 
 //Fill the matrix
